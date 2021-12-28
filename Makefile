@@ -1,7 +1,7 @@
-GPU=0
-CUDNN=0
+GPU=1
+CUDNN=1
 CUDNN_HALF=0
-OPENCV=0
+OPENCV=1
 AVX=0
 OPENMP=0
 LIBSO=0
@@ -20,7 +20,10 @@ DEBUG=0
 ARCH= -gencode arch=compute_35,code=sm_35 \
       -gencode arch=compute_50,code=[sm_50,compute_50] \
       -gencode arch=compute_52,code=[sm_52,compute_52] \
-	    -gencode arch=compute_61,code=[sm_61,compute_61]
+	    -gencode arch=compute_61,code=[sm_61,compute_61] \
+		-gencode arch=compute_75,code=[sm_75,compute_75] \
+		-gencode arch=compute_86,code=[sm_86,compute_86] \
+		-gencode arch=compute_80,code=[sm_80,compute_80]
 
 OS := $(shell uname)
 
