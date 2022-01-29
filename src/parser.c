@@ -267,7 +267,9 @@ layer parse_crnn(list *options, size_params params)
     int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
     int xnor = option_find_int_quiet(options, "xnor", 0);
 
-    layer l = make_crnn_layer(params.batch, params.h, params.w, params.c, hidden_filters, output_filters, groups, params.time_steps, size, stride, dilation, padding, activation, batch_normalize, xnor, params.train);
+    int tsm = option_find_int_quiet(options, "tsm", 0); // (list to search, key, return if not found)
+
+    layer l = make_crnn_layer(params.batch, params.h, params.w, params.c, hidden_filters, output_filters, groups, params.time_steps, size, stride, dilation, padding, activation, batch_normalize, xnor, tsm, params.train);
 
     l.shortcut = option_find_int_quiet(options, "shortcut", 0);
 

@@ -131,6 +131,7 @@ void weighted_sum_gpu(float *a, float *b, float *s, int num, float *c);
 void mult_add_into_gpu(int num, float *a, float *b, float *c);
 
 void reorg_ongpu(float *x, int w, int h, int c, int batch, int stride, int forward, float *out);
+void temporal_shift_gpu(float *x, int v, int w, int h, int c, int batch, int forward, float *out); // TO BE IMPLEMENTED
 
 void softmax_gpu_new_api(float *input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, float *output);
 void softmax_gpu(float *input, int n, int offset, int groups, float temp, float *output);
@@ -176,6 +177,8 @@ void coord_conv_gpu(float *dst, int size, int w, int h, int chan, int b, int typ
 
 void forward_implicit_gpu(int batch, int nweights, float *weight_gpu, float *output_gpu);
 void backward_implicit_gpu(int batch, int nweights, float *weight_updates_gpu, float *delta_gpu);
+
+void pad_zero(int batch, int t, int w, int h, int c);
 
 #endif // GPU
 #ifdef __cplusplus

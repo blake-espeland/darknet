@@ -193,7 +193,8 @@ typedef enum {
     EMPTY,
     BLANK,
     CONTRASTIVE,
-    IMPLICIT
+    IMPLICIT,
+    TSM
 } LAYER_TYPE;
 
 // layer.h
@@ -270,6 +271,9 @@ struct layer {
     int scale_wh;
     int binary;
     int xnor;
+
+    int tsm;            // For CRNN
+
     int peephole;
     int use_bin_output;
     int keep_delta_gpu;
@@ -509,6 +513,9 @@ struct layer {
     uint32_t *bin_re_packed_input;
     char *t_bit_input;
 
+    float *tsm_cache;
+
+    struct layer *tsm_layer;
     struct layer *input_layer;
     struct layer *self_layer;
     struct layer *output_layer;

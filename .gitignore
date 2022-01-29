@@ -10,8 +10,11 @@
 *.lib
 *.dylib
 *.pyc
+*.avi
+*.mp4
 mnist/
 data/
+!data/labels/
 caffe/
 grasp/
 images/
@@ -19,10 +22,10 @@ opencv/
 convnet/
 decaf/
 submission/
-cfg/
 temp/
 build/darknet/*
 build_*/
+backup/
 ninja/
 ninja.zip
 vcpkg_installed/
