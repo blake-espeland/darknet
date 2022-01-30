@@ -1,6 +1,7 @@
 #include <stdio.h>  // srand
 #include <stdlib.h>
 
+#include "convolutional_layer.h"
 #include "tsm_layer.h"
 #include "utils.h"
 
@@ -16,6 +17,7 @@ layer make_tsm_layer(int batch, int h, int w, int c, int output_filters, int gro
     l.w = w;
     l.h = h;
     l.c = c;
+    l.out_c = 2*c;
     l.batch = batch;
     l.type = TSM;
     l.tsm_cache = (float*)xcalloc(1, sizeof(float)); // residual features
@@ -24,12 +26,19 @@ layer make_tsm_layer(int batch, int h, int w, int c, int output_filters, int gro
     *(l.output_layer) = make_convolutional_layer(batch, steps, h, w, c, output_filters, groups, size, stride, stride, dilation, pad, activation, batch_normalize, 0, 0, 0, 0, 0, 0, NULL, 0, 0, train);
     l.output_layer->batch = batch;
     if (l.workspace_size < l.output_layer->workspace_size) l.workspace_size = l.output_layer->workspace_size;
+
+    return l;
+}
+
+
+void concat(float *x, float *y, int dim, layer *l){
+
 }
 
 /*
 Perform random shift and update cache
 */
-void shift(float *frame, const tsm_layer *l){
+void shift(float *frame, tsm_layer *l){
     int b;
     int w, h, c;
     int len = l->batch * l->w * l->h * l->c;
@@ -53,26 +62,32 @@ void shift(float *frame, const tsm_layer *l){
             }
         }
     }
+
     float *p = (float*)xcalloc(len, sizeof(float));
     memcpy(p, frame, len * sizeof(float));
-    l->tsm_cache = p;
+    l->tsm_cache = p; // making the modified input the input for next frame
 
     free(p);
     free(shift_ind);
 }
 
-void forward_tsm_layer(const tsm_layer l, network_state state){
+void forward_tsm_layer(tsm_layer l, network_state state){
     // perform tsm with previous layer
     // perform convolution on it
     // return sum of output and input
-    int len = l.batch * l.w * l.h * l.c;
-    float *p = (float*)xcalloc(len, sizeof(float));
-    memcpy(p, state.input, len * sizeof(float));
+    layer output_layer = *(l.output_layer);
 
-    l->tsm_cache = p;
+    int len = l.batch * l.w * l.h * l.c;
+    float *ipt = (float*)xcalloc(len, sizeof(float));
+    memcpy(ipt, state.input, len * sizeof(float));
+
+    // Shift
     shift(state.input, &l);
+    // Run convolution
+    forward_convolutional_layer(output_layer, state);
+    // Add ipt with state.input
     
-    free(p);
+    free(ipt);
 }
 
 
@@ -100,7 +115,5 @@ void forward_tsm_layer(const tsm_layer l, network_state state){
 
 //         out = torch.zeros_like(x)
 //         out[:, :-1, :fold] = x[:, 1:, :fold]  # shift left
-//         out[:, 1:, fold: 2 * fold] = x[:, :-1, fold: 2 * fold]  # shift right
-//         out[:, :, 2 * fold:] = x[:, :, 2 * fold:]  # not shift
 
 //         return out.view(nt, c, h, w)

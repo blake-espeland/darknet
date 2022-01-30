@@ -18,12 +18,12 @@ Store feature cache
 extern "C" {
 #endif // end cpp
 
-layer make_tsm_layer(int batch, int t, int w, int h, int c, int reverse);
+layer make_tsm_layer(int batch, int h, int w, int c, int output_filters, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, float partial_shift, int train);
 void cache_tsm_features(layer *l, int w, int h);
 void forward_tsm_layer(const layer l, network_state state);
 void backward_tsm_layer(const layer l, network_state state);
 
-void shift(float *frame, const tsm_layer *l)
+// void shift(float *frame, const tsm_layer *l);
 
 #ifdef GPU // GPU functions
 void forward_tsm_layer_gpu(layer l, network_state state);
