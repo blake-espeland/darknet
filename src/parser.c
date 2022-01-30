@@ -54,7 +54,6 @@ list *read_cfg(char *filename);
 
 LAYER_TYPE string_to_layer_type(char * type)
 {
-
     if (strcmp(type, "[shortcut]")==0) return SHORTCUT;
     if (strcmp(type, "[scale_channels]") == 0) return SCALE_CHANNELS;
     if (strcmp(type, "[sam]") == 0) return SAM;
@@ -98,6 +97,7 @@ LAYER_TYPE string_to_layer_type(char * type)
     if (strcmp(type, "[empty]") == 0
         || strcmp(type, "[silence]") == 0) return EMPTY;
     if (strcmp(type, "[implicit]") == 0) return IMPLICIT;
+    if (strcmp(type, "[tsm]") == 0) return TSM;
     return BLANK;
 }
 
@@ -154,7 +154,7 @@ local_layer parse_local(list *options, size_params params)
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
-    int batch,h,w,c;
+    int batch,t,h,w,c;
     h = params.h;
     w = params.w;
     c = params.c;
@@ -267,14 +267,30 @@ layer parse_crnn(list *options, size_params params)
     int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
     int xnor = option_find_int_quiet(options, "xnor", 0);
 
-    int tsm = option_find_int_quiet(options, "tsm", 0); // (list to search, key, return if not found)
-
-    layer l = make_crnn_layer(params.batch, params.h, params.w, params.c, hidden_filters, output_filters, groups, params.time_steps, size, stride, dilation, padding, activation, batch_normalize, xnor, tsm, params.train);
+    layer l = make_crnn_layer(params.batch, params.h, params.w, params.c, hidden_filters, output_filters, groups, params.time_steps, size, stride, dilation, padding, activation, batch_normalize, xnor, params.train);
 
     l.shortcut = option_find_int_quiet(options, "shortcut", 0);
 
     return l;
 }
+
+layer parse_tsm(list *options, size_params params){
+    // Convolution parameters
+    int size = option_find_int_quiet(options, "size", 3);
+    int stride = option_find_int_quiet(options, "stride", 1);
+    int dilation = option_find_int_quiet(options, "dilation", 1);
+    int pad = option_find_int_quiet(options, "pad", 0);
+    int padding = option_find_int_quiet(options, "padding", 0);
+    int output_filters = option_find_int(options, "output",1);
+    int groups = option_find_int_quiet(options, "groups", 1);
+    char *activation_s = option_find_str(options, "activation", "logistic");
+    int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
+
+    ACTIVATION activation = get_activation(activation_s);
+
+    // layer l = make_tsm_layer();
+}
+
 
 layer parse_rnn(list *options, size_params params)
 {

@@ -4,6 +4,7 @@
 #include "network.h"
 #include "layer.h"
 #include "utils.h"
+#include "convolutional_layer.h"
 
 typedef layer tsm_layer;
 
@@ -21,6 +22,8 @@ layer make_tsm_layer(int batch, int t, int w, int h, int c, int reverse);
 void cache_tsm_features(layer *l, int w, int h);
 void forward_tsm_layer(const layer l, network_state state);
 void backward_tsm_layer(const layer l, network_state state);
+
+void shift(float *frame, const tsm_layer *l)
 
 #ifdef GPU // GPU functions
 void forward_tsm_layer_gpu(layer l, network_state state);

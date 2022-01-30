@@ -1,6 +1,5 @@
 #include "crnn_layer.h"
 #include "convolutional_layer.h"
-#include "tsm_layer.h"
 #include "utils.h"
 #include "dark_cuda.h"
 #include "blas.h"
@@ -27,16 +26,7 @@ static void increment_layer(layer *l, int steps)
 #endif
 }
 
-/*
-Contains 3 conv layers (input, self, output)
-
-TSM:
-    If track=1 and sequential_subdiv=1
-    then the batch will be sequential => no need to make extra dimension
-    The TSM layer should be placed at the front of the input conv
-
-*/
-layer make_crnn_layer(int batch, int h, int w, int c, int hidden_filters, int output_filters, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, int xnor, int tsm, int train)
+layer make_crnn_layer(int batch, int h, int w, int c, int hidden_filters, int output_filters, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, int xnor, int train)
 {
     fprintf(stderr, "CRNN Layer: %d x %d x %d image, %d filters\n", h,w,c,output_filters);
     batch = batch / steps;
@@ -57,15 +47,9 @@ layer make_crnn_layer(int batch, int h, int w, int c, int hidden_filters, int ou
     l.inputs = h * w * c; // # inputs
     l.hidden = h * w * hidden_filters;
     l.xnor = xnor;
-    l.tsm = tsm;
 
     l.state = (float*)xcalloc(l.hidden * l.batch * (l.steps + 1), sizeof(float));
 
-    if (l.tsm){
-        l.tsm_layer = (layer*)xcalloc(1, sizeof(layer));
-        *(l.input_layer) = make_tsm_layer(batch, int t, int w, int h, int c, int reverse)
-    }
-    
     l.input_layer = (layer*)xcalloc(1, sizeof(layer));
     *(l.input_layer) = make_convolutional_layer(batch, steps, h, w, c, hidden_filters, groups, size, stride, stride, dilation, pad, activation, batch_normalize, 0, xnor, 0, 0, 0, 0, NULL, 0, 0, train);
     l.input_layer->batch = batch;

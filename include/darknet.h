@@ -515,7 +515,6 @@ struct layer {
 
     float *tsm_cache;
 
-    struct layer *tsm_layer;
     struct layer *input_layer;
     struct layer *self_layer;
     struct layer *output_layer;

@@ -1375,7 +1375,7 @@ void forward_convolutional_layer(convolutional_layer l, network_state state)
                 else {
                     //im2col_cpu(im, l.c / l.groups, l.h, l.w, l.size, l.stride, l.pad, b);
 
-                    im2col_cpu_ext(im,   // input
+                    im2col_cpu_ext(im,      // input
                         l.c / l.groups,     // input channels
                         l.h, l.w,           // input size (h, w)
                         l.size, l.size,     // kernel size (h, w)
