@@ -12,33 +12,66 @@ Consists of a residual block:
 - Temporal shift module
 - Convolutional layer
 */
-layer make_tsm_layer(int batch, int h, int w, int c, int output_filters, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, float partial_shift, int train){
+layer make_tsm_layer(int batch, int h, int w, int c, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, float partial_shift, int train){
     layer l = { (LAYER_TYPE)0 };
+
+    int total_batch = batch*steps;
+
     l.w = w;
     l.h = h;
     l.c = c;
     l.out_c = 2*c;
     l.batch = batch;
+    
+    l.train = train;
+
     l.type = TSM;
-    l.tsm_cache = (float*)xcalloc(1, sizeof(float)); // residual features
+    l.tsm_cache = (float*)xcalloc(batch * h * w * c, sizeof(float)); // residual features
 
     l.output_layer = (layer*)xcalloc(1, sizeof(layer));
-    *(l.output_layer) = make_convolutional_layer(batch, steps, h, w, c, output_filters, groups, size, stride, stride, dilation, pad, activation, batch_normalize, 0, 0, 0, 0, 0, 0, NULL, 0, 0, train);
+    *(l.output_layer) = make_convolutional_layer(batch, steps, h, w, c, c, groups, size, stride, stride, dilation, pad, activation, batch_normalize, 0, 0, 0, 0, 0, 0, NULL, 0, 0, train);
     l.output_layer->batch = batch;
     if (l.workspace_size < l.output_layer->workspace_size) l.workspace_size = l.output_layer->workspace_size;
+    
+    // out_h and out_w should be the same as input
+    int out_h = convolutional_out_height(*(l.output_layer));
+    int out_w = convolutional_out_width(*(l.output_layer));     
+    l.out_w = out_w;
+    l.out_h = out_h;
+    l.outputs = l.out_h * l.out_w * l.out_c;
+    l.output = (float*)xcalloc(total_batch*l.outputs, sizeof(float));
 
+    l.forward = forward_tsm_layer;
     return l;
 }
 
+/*
+Concatenates y to the end of x along 0th dimension.
+*/
+void concat(float *x, float *y, layer *l){
+    int b, w, h, c;
 
-void concat(float *x, float *y, int dim, layer *l){
+    for(b = 0; b < l->batch; b++){
+        for (w = 0; w < l->w; w++) {
+            for (h = 0; h < l->h; h++) {
+                for (c = 0; c < l->c; c++)
+                {
+                    int x_idx = w + l->w * (h + l->h * (c + l->c * b));
+                    int y_idx = w + l->w * (h + l->h * (c + l->out_c * b)); // same, but shifted
+                    l->output[x_idx] = x[x_idx];
+                    l->output[y_idx] = y[x_idx];
+                }
+            }
+        }
+    }
 
 }
 
 /*
-Perform random shift and update cache
+Perform random shift and update cache.
+Note: may want to adopt a different shifting regime.
 */
-void shift(float *frame, tsm_layer *l){
+void shift_and_update(float *frame, tsm_layer *l){
     int b;
     int w, h, c;
     int len = l->batch * l->w * l->h * l->c;
@@ -56,7 +89,7 @@ void shift(float *frame, tsm_layer *l){
                 {
                     if(shift_ind[c]){
                         int idx = w + l->w * (h + l->h * (c + l->c * b));
-                        frame[idx] = l->tsm_cache[idx]; // shift down
+                        frame[idx] = l->tsm_cache[idx]; // shift up
                     }
                 }
             }
@@ -82,38 +115,11 @@ void forward_tsm_layer(tsm_layer l, network_state state){
     memcpy(ipt, state.input, len * sizeof(float));
 
     // Shift
-    shift(state.input, &l);
+    shift_and_update(state.input, &l);
     // Run convolution
     forward_convolutional_layer(output_layer, state);
-    // Add ipt with state.input
+    // Concat ipt to state.input
+    concat(state.input, ipt, &l);
     
     free(ipt);
 }
-
-
-
-// class TemporalShift(nn.Module):
-//     def __init__(self, n_segment=3, n_div=8, inplace=False):
-//         super(TemporalShift, self).__init__()
-//         self.n_segment = n_segment
-//         self.fold_div = n_div
-//         self.inplace = inplace
-//         if inplace:`
-//             print('=> Using in-place shift...')
-//         print('=> Using fold div: {}'.format(self.fold_div))
-
-//     def forward(self, x):
-//         return self.shift(x, self.n_segment, fold_div=self.fold_div, inplace=self.inplace) 
-
-//     @staticmethod
-//     def shift(x, n_segment, fold_div=3, ):
-//         nt, c, h, w = x.size()
-//         n_batch = nt // n_segment
-//         x = x.view(n_batch, n_segment, c, h, w)
-
-//         fold = c // fold_div
-
-//         out = torch.zeros_like(x)
-//         out[:, :-1, :fold] = x[:, 1:, :fold]  # shift left
-
-//         return out.view(nt, c, h, w)

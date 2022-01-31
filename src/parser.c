@@ -1,3 +1,4 @@
+#include <darknet.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -34,6 +35,7 @@
 #include "scale_channels_layer.h"
 #include "sam_layer.h"
 #include "softmax_layer.h"
+#include "tsm_layer.h"
 #include "utils.h"
 #include "upsample_layer.h"
 #include "version.h"
@@ -288,7 +290,10 @@ layer parse_tsm(list *options, size_params params){
 
     ACTIVATION activation = get_activation(activation_s);
 
-    // layer l = make_tsm_layer();
+    layer l = make_tsm_layer(params.batch, params.h, params.w, params.c, groups, params.time_steps,
+        size, stride, dilation, pad, activation, batch_normalize, 0.25, params.train);
+
+    return l;
 }
 
 
@@ -1186,7 +1191,7 @@ void parse_net_options(list *options, network *net)
     net->momentum = option_find_float(options, "momentum", .9);
     net->decay = option_find_float(options, "decay", .0001);
     int subdivs = option_find_int(options, "subdivisions",1);
-    net->time_steps = option_find_int_quiet(options, "time_steps",1);
+    net->time_steps = option_find_int_quiet(options, "time_steps",1); // Video/sequential training
     net->track = option_find_int_quiet(options, "track", 0);
     net->augment_speed = option_find_int_quiet(options, "augment_speed", 2);
     net->init_sequential_subdivisions = net->sequential_subdivisions = option_find_int_quiet(options, "sequential_subdivisions", subdivs);
@@ -1524,6 +1529,8 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
                 if (count >= last_stop_backward)
                     net.layers[l.input_layers[k]].keep_delta_gpu = 1;
             }
+        }else if(lt == TSM){
+            l = parse_tsm(options, params);
         }else if (lt == UPSAMPLE) {
             l = parse_upsample(options, params, net);
         }else if(lt == SHORTCUT){
@@ -2091,6 +2098,8 @@ void save_weights_upto(network net, char *filename, int cutoff, int save_ema)
             save_convolutional_weights(*(l.input_layer), fp);
             save_convolutional_weights(*(l.self_layer), fp);
             save_convolutional_weights(*(l.output_layer), fp);
+        } if(l.type == TSM){
+            save_convolutional_weights(*(l.output_layer), fp);
         } if(l.type == LOCAL){
 #ifdef GPU
             if(gpu_index >= 0){
@@ -2329,6 +2338,9 @@ void load_weights_upto(network *net, char *filename, int cutoff)
         if(l.type == CRNN){
             load_convolutional_weights(*(l.input_layer), fp);
             load_convolutional_weights(*(l.self_layer), fp);
+            load_convolutional_weights(*(l.output_layer), fp);
+        }
+        if(l.type == TSM){
             load_convolutional_weights(*(l.output_layer), fp);
         }
         if(l.type == RNN){
