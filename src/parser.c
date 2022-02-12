@@ -156,7 +156,7 @@ local_layer parse_local(list *options, size_params params)
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
-    int batch,t,h,w,c;
+    int batch,h,w,c;
     h = params.h;
     w = params.w;
     c = params.c;
@@ -276,22 +276,21 @@ layer parse_crnn(list *options, size_params params)
     return l;
 }
 
-layer parse_tsm(list *options, size_params params){
-    // Convolution parameters
+layer parse_tsm(list *options, size_params params)
+{
     int size = option_find_int_quiet(options, "size", 3);
     int stride = option_find_int_quiet(options, "stride", 1);
     int dilation = option_find_int_quiet(options, "dilation", 1);
     int pad = option_find_int_quiet(options, "pad", 0);
-    int padding = option_find_int_quiet(options, "padding", 0);
-    int output_filters = option_find_int(options, "output",1);
     int groups = option_find_int_quiet(options, "groups", 1);
     char *activation_s = option_find_str(options, "activation", "logistic");
     int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
-
     ACTIVATION activation = get_activation(activation_s);
 
+    float partial_shift = option_find_float(options, "partial_shift", 0.25); // how often to shift
+
     layer l = make_tsm_layer(params.batch, params.h, params.w, params.c, groups, params.time_steps,
-        size, stride, dilation, pad, activation, batch_normalize, 0.25, params.train);
+        size, stride, dilation, pad, activation, batch_normalize, partial_shift, params.train);
 
     return l;
 }

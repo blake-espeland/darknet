@@ -376,7 +376,7 @@ float train_network_datum_gpu(network net, float *x, float *y)
         float scale = (get_current_iteration(net) / ((float)net.max_batches));
         //scale = sin(scale * M_PI);
         net.learning_rate = net.adversarial_lr * scale;
-        layer l = net.layers[net.n - 1];
+        // layer l = net.layers[net.n - 1];
         int y_size = get_network_output_size(net)*net.batch;
         if (net.layers[net.n - 1].truths) y_size = net.layers[net.n - 1].truths*net.batch;
         float *truth_cpu = (float *)xcalloc(y_size, sizeof(float));

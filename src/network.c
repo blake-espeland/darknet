@@ -7,6 +7,7 @@
 #include "network.h"
 #include "image.h"
 #include "data.h"
+#include "tsm_layer.h"
 #include "utils.h"
 #include "blas.h"
 
@@ -637,6 +638,8 @@ int resize_network(network *net, int w, int h)
             resize_normalization_layer(&l, w, h);
         }else if(l.type == COST){
             resize_cost_layer(&l, inputs);
+        }else if(l.type == TSM){
+            resize_tsm_layer(&l, w, h);
         }else{
             fprintf(stderr, "Resizing type %d \n", (int)l.type);
             error("Cannot resize this type of layer", DARKNET_LOC);

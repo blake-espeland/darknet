@@ -514,6 +514,7 @@ struct layer {
     char *t_bit_input;
 
     float *tsm_cache;
+    float *tsm_cache_gpu;
 
     struct layer *input_layer;
     struct layer *self_layer;
