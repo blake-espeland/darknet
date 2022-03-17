@@ -58,7 +58,7 @@ void resize_route_layer(route_layer *l, network *net)
         if(next.out_w == first.out_w && next.out_h == first.out_h){
             l->out_c += next.out_c;
         }else{
-            printf("Error: Different size of input layers: %d x %d, %d x %d\n", next.out_w, next.out_h, first.out_w, first.out_h);
+            printf("Error: Different size of input layers in route to %d:\nnext(%d x %d), first(%d x %d)\n", index, next.out_w, next.out_h, first.out_w, first.out_h);
             l->out_h = l->out_w = l->out_c = 0;
             exit(EXIT_FAILURE);
         }

@@ -275,6 +275,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         */
 
         const double load_time = (what_time_is_it_now() - time);
+        printf("Number of detected GPUs: %d\n", ngpus);
         printf("Loaded: %lf seconds", load_time);
         if (load_time > 0.1 && avg_loss > 0) printf(" - performance bottleneck on CPU or Disk HDD/SSD");
         printf("\n");

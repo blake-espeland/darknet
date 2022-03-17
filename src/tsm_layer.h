@@ -26,7 +26,7 @@ typedef layer tsm_layer;
 extern "C" {
 #endif // end cpp
 
-layer make_tsm_layer(int batch, int h, int w, int c, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, float partial_shift, int train);
+layer make_tsm_layer(int batch, int h, int w, int c, int output_filters, int groups, int steps, int size, int stride, int dilation, int pad, ACTIVATION activation, int batch_normalize, float partial_shift, int train);
 void forward_tsm_layer(layer l, network_state state);
 void backward_tsm_layer(layer l, network_state state);
 void resize_tsm_layer(layer *l, int w, int h);

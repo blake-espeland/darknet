@@ -279,6 +279,7 @@ layer parse_crnn(list *options, size_params params)
 layer parse_tsm(list *options, size_params params)
 {
     int size = option_find_int_quiet(options, "size", 3);
+    int output_filters = option_find_int_quiet(options, "filters", 0);
     int stride = option_find_int_quiet(options, "stride", 1);
     int dilation = option_find_int_quiet(options, "dilation", 1);
     int pad = option_find_int_quiet(options, "pad", 0);
@@ -289,7 +290,7 @@ layer parse_tsm(list *options, size_params params)
 
     float partial_shift = option_find_float(options, "partial_shift", 0.25); // how often to shift
 
-    layer l = make_tsm_layer(params.batch, params.h, params.w, params.c, groups, params.time_steps,
+    layer l = make_tsm_layer(params.batch, params.h, params.w, params.c, output_filters, groups, params.time_steps, 
         size, stride, dilation, pad, activation, batch_normalize, partial_shift, params.train);
 
     return l;
